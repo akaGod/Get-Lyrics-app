@@ -1,5 +1,3 @@
-
-
 import React, { Component } from 'react';
 import {
   Container,
@@ -17,19 +15,41 @@ import {
   Spinner
 
 } from 'native-base';
-
-import {Alert,View} from 'react-native';
+import axios from 'axios';
+import {Alert,View,FlatList} from 'react-native';
+import Song from './Song';
 
 export default class App extends Component{
   state =
   {
     track: '' ,
-    loading :false
+    loading :false,
+    list:[],
+    mylyrics:false
   };
 
   search(){
-    Alert.alert('hey')
+    //Alert.alert('hey')
     this.setState({loading:true})
+    var startApi= 'https://api.musixmatch.com/ws/1.1/track.search?format=json&q_track='
+    var endApi='&quorum_factor=1&page_size=100&apikey=0298623f90e69244737105d190f71df6'
+
+    axios.get(startApi+this.state.track+ endApi).then((res)=>{
+      console.log(res.data.message.body.track_list);
+      var track_list=res.data.message.body.track_list;
+      if(track_list==[] ){
+        console.log('not result')
+        }
+      this.setState({list:track_list,loading:false})
+      /*res.data.callback((dt)=>{
+        console.log(dt)
+      })*/
+      //Alert.alert(JSON.stringify(res))
+    }).catch((err)=>{
+      console.log(err);
+      //Alert.alert(err)
+    })
+
   }
 
   render() {
@@ -58,11 +78,17 @@ export default class App extends Component{
           </Item>
           {this.state.loading?(
             <Spinner color='green' />
-          ):(<View/>)}
-
+          ):(<FlatList
+               data={this.state.list}
+               keyExtractor={(item)=>JSON.stringify(item.track.track_id)}
+               renderItem={({item}) => (<Song
+                 press={() => this.setState({mylrics:true})}
+                 songname={item.track.track_name}
+                 artistname={item.track.artist_name}
+                  />)}
+             />)}
 
         </Content>
-
       </Container>
     );
   }
