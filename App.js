@@ -18,6 +18,7 @@ import {
 import axios from 'axios';
 import {Alert,View,FlatList} from 'react-native';
 import Song from './Song';
+import Songlyrics from './songlyrics'
 
 export default class App extends Component{
   state =
@@ -25,7 +26,9 @@ export default class App extends Component{
     track: '' ,
     loading :false,
     list:[],
-    mylyrics:false
+    mylyrics:false,
+    track_id_clicked:'',
+    track_name:''
   };
 
   search(){
@@ -35,7 +38,7 @@ export default class App extends Component{
     var endApi='&quorum_factor=1&page_size=100&apikey=0298623f90e69244737105d190f71df6'
 
     axios.get(startApi+this.state.track+ endApi).then((res)=>{
-      console.log(res.data.message.body.track_list);
+      //console.log(res.data.message.body.track_list);
       var track_list=res.data.message.body.track_list;
       if(track_list==[] ){
         console.log('not result')
@@ -78,15 +81,27 @@ export default class App extends Component{
           </Item>
           {this.state.loading?(
             <Spinner color='green' />
+          ):(this.state.mylyrics?(
+            <Songlyrics
+            modalVisible={this.state.mylyrics}
+            goback={() => this.setState({mylyrics:false})}
+            id={this.state.track_id_clicked}
+            songname={this.state.track_name}
+
+            />
           ):(<FlatList
-               data={this.state.list}
-               keyExtractor={(item)=>JSON.stringify(item.track.track_id)}
-               renderItem={({item}) => (<Song
-                 press={() => this.setState({mylrics:true})}
-                 songname={item.track.track_name}
-                 artistname={item.track.artist_name}
-                  />)}
-             />)}
+             data={this.state.list}
+             keyExtractor={(item)=>JSON.stringify(item.track.track_id)}
+             renderItem={({item}) => (<Song
+               press={() => this.setState({mylyrics:true,track_name:item.track.track_name,track_id_clicked:item.track.track_id})}
+               songname={item.track.track_name}
+               artistname={item.track.artist_name}
+                />)}
+             />)
+             )}
+
+
+
 
         </Content>
       </Container>
